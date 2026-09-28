@@ -451,7 +451,7 @@
     <div class="header">
         <div class="header-title">
             <h1>RTO Notice Generator</h1>
-            <p>Operations Notice Tool & Log</p>
+            <p>Operations Notice Tool & Repository</p>
         </div>
         <div class="header-actions">
             <button class="icon-btn" onclick="openHistoryModal()">
@@ -464,16 +464,7 @@
         </div>
     </div>
 
-    <!-- Google Sheet Configuration Card -->
-    <div class="card">
-        <div class="form-group">
-            <label for="googleScriptUrl">Google Apps Script Web App URL</label>
-            <input type="text" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveGoogleScriptUrl()">
-            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Target Sheet ID: <code>1-LPBXjFf6pxRu97JRC_prv1Hf4o_FAns2D89IB6aGTs</code></p>
-        </div>
-    </div>
-
-    <!-- Notice Selector -->
+    <!-- Notice Type Selector Card -->
     <div class="card">
         <div class="form-group">
             <label for="noticeType">Select Report / Notice Type</label>
@@ -505,7 +496,7 @@
         </div>
     </div>
 
-    <!-- Live Preview & Dispatch Buttons -->
+    <!-- Live Preview & Action Buttons -->
     <div class="card">
         <label>Live Operational Preview</label>
         <div class="preview-container">
@@ -524,7 +515,7 @@
         </div>
     </div>
 
-    <!-- History Log Modal -->
+    <!-- History Drawer Modal -->
     <div class="modal-overlay" id="historyModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -568,6 +559,9 @@
     <div class="toast" id="toast">Copied to clipboard!</div>
 
     <script>
+        // HARDCODED GOOGLE APPS SCRIPT WEB APP ENDPOINT
+        const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzg667S28kP8RWTpGBHb4vu2DPLwOJe5_gzOzv8o1931i6fku0eSDSVZtN0lWnKBJdH6A/exec";
+
         const schemas = {
             contingency_removal: {
                 title: 'Contingency List Removal Notice',
@@ -679,15 +673,6 @@
 
         function updateThemeUI(theme) {
             document.getElementById('themeIcon').innerText = theme === 'dark' ? '☀️' : '🌙';
-        }
-
-        function saveGoogleScriptUrl() {
-            localStorage.setItem('rto_google_script_url', document.getElementById('googleScriptUrl').value.trim());
-        }
-
-        function loadGoogleScriptUrl() {
-            const savedUrl = localStorage.getItem('rto_google_script_url');
-            if (savedUrl) document.getElementById('googleScriptUrl').value = savedUrl;
         }
 
         function renderFormFields() {
@@ -940,16 +925,13 @@
         }
 
         function syncToGoogleSheet(logData) {
-            const scriptUrl = localStorage.getItem('rto_google_script_url');
-            if (!scriptUrl) return;
-
-            fetch(scriptUrl, {
+            fetch(GOOGLE_SCRIPT_WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logData)
             }).then(() => {
-                console.log('Successfully posted to Google Sheets');
+                console.log('Successfully synced to Google Sheets!');
             }).catch(err => {
                 console.error('Google Sheets Sync Failure:', err);
             });
@@ -1103,7 +1085,7 @@
             if (!validateForm()) return;
             copyTextToClipboard(currentNoticeText).then(() => {
                 saveReportToHistory();
-                showToast('Report copied & synced!');
+                showToast('Report copied & saved to Google Sheets!');
             }).catch(() => {
                 showToast('Failed to copy. Please copy manually.');
             });
@@ -1133,7 +1115,6 @@
 
         window.onload = () => {
             initTheme();
-            loadGoogleScriptUrl();
             loadReporterInfo();
             renderFormFields();
             updateHistoryBadge();
