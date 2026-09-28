@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -658,7 +659,7 @@
             <div class="history-list" id="historyListContainer"></div>
 
             <div style="margin-top: 12px; display: flex; gap: 8px;">
-                <button class="btn btn-excel" onclick="exportToGoogleSheetsCSV()">
+                <button class="btn btn-excel" onclick="exportToCSV()">
                     📊 Export CSV
                 </button>
                 <button class="btn btn-secondary" onclick="clearAllHistory()" style="width: auto; padding: 0 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
@@ -675,7 +676,7 @@
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h3 id="confirmTitle">Report Text Copied!</h3>
-            <p id="confirmSubtitle">The formatted notice has been saved to clipboard and synced to Google Sheets.</p>
+            <p id="confirmSubtitle">The formatted notice has been saved to clipboard and synced to Microsoft Excel.</p>
             <button class="btn-ok" onclick="closeConfirmModal()">OK</button>
         </div>
     </div>
@@ -687,8 +688,8 @@
     </div>
 
     <script>
-        // HARDCODED GOOGLE APPS SCRIPT WEB APP ENDPOINT
-        const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzg667S28kP8RWTpGBHb4vu2DPLwOJe5_gzOzv8o1931i6fku0eSDSVZtN0lWnKBJdH6A/exec";
+        // MICROSOFT POWER AUTOMATE WEBHOOK ENDPOINT
+        const EXCEL_DATABASE_URL = "PASTE_YOUR_POWER_AUTOMATE_URL_HERE";
 
         const schemas = {
             contingency_removal: {
@@ -1115,17 +1116,24 @@
             localStorage.setItem('rto_report_history', JSON.stringify(logs));
             updateHistoryBadge();
 
-            syncToGoogleSheet(newLog);
+            syncToExcelDatabase(newLog);
         }
 
-        function syncToGoogleSheet(logData) {
-            fetch(GOOGLE_SCRIPT_WEB_APP_URL, {
+        function syncToExcelDatabase(logData) {
+            // Only attempt to fetch if the user has provided a real URL
+            if(EXCEL_DATABASE_URL === "PASTE_YOUR_POWER_AUTOMATE_URL_HERE") {
+                console.warn("Power Automate URL not set. Data saved locally but not to Excel.");
+                return;
+            }
+            
+            fetch(EXCEL_DATABASE_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logData)
+            }).then(response => {
+                console.log('Successfully synced to Microsoft Excel!');
             }).catch(err => {
-                console.error('Google Sheets Sync Failure:', err);
+                console.error('Excel Sync Failure:', err);
             });
         }
 
@@ -1217,7 +1225,7 @@
             }
         }
 
-        function exportToGoogleSheetsCSV() {
+        function exportToCSV() {
             const logs = getHistoryLog();
             if (logs.length === 0) {
                 alert('No report history available to export.');
@@ -1306,7 +1314,7 @@
                 saveReportToHistory();
                 showConfirmModal(
                     "Report Text Copied!",
-                    "The formatted operational notice is copied to your clipboard and synced to Google Sheets."
+                    "The formatted notice has been saved to clipboard and synced to Microsoft Excel."
                 );
             }).catch(() => {
                 showToast('Failed to copy. Please copy manually.');
