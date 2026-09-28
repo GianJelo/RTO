@@ -581,7 +581,6 @@
             <label for="noticeType">Select Report / Notice Type</label>
             <select id="noticeType" onchange="renderFormFields()">
                 <option value="contingency_removal">Contingency List Removal Notice</option>
-                <option value="contingency_inclusion">Contingency List Inclusion Notice</option>
                 <option value="hvdc_limit">HVDC Limit Change Update</option>
                 <option value="market_intervention">Market Intervention Notice</option>
                 <option value="lifting_market_intervention">Lifting of Market Intervention Notice</option>
@@ -640,7 +639,6 @@
                     <select id="historyFilterType" onchange="renderHistoryList()">
                         <option value="ALL">All Notice Types</option>
                         <option value="contingency_removal">Contingency Removal</option>
-                        <option value="contingency_inclusion">Contingency Inclusion</option>
                         <option value="hvdc_limit">HVDC Limit</option>
                         <option value="market_intervention">Market Intervention</option>
                         <option value="lifting_market_intervention">Lifting Market Intervention</option>
@@ -659,7 +657,7 @@
             <div class="history-list" id="historyListContainer"></div>
 
             <div style="margin-top: 12px; display: flex; gap: 8px;">
-                <button class="btn btn-excel" onclick="exportToCSV()">
+                <button class="btn btn-excel" onclick="exportToGoogleSheetsCSV()">
                     📊 Export CSV
                 </button>
                 <button class="btn btn-secondary" onclick="clearAllHistory()" style="width: auto; padding: 0 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
@@ -676,7 +674,7 @@
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h3 id="confirmTitle">Report Text Copied!</h3>
-            <p id="confirmSubtitle">The formatted notice has been saved to clipboard and synced to Microsoft Excel.</p>
+            <p id="confirmSubtitle">The formatted notice has been saved to clipboard and synced to Google Sheets.</p>
             <button class="btn-ok" onclick="closeConfirmModal()">OK</button>
         </div>
     </div>
@@ -688,8 +686,8 @@
     </div>
 
     <script>
-        // MICROSOFT POWER AUTOMATE WEBHOOK ENDPOINT
-        const EXCEL_DATABASE_URL = "PASTE_YOUR_POWER_AUTOMATE_URL_HERE";
+        // HARDCODED GOOGLE APPS SCRIPT WEB APP ENDPOINT
+        const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzg667S28kP8RWTpGBHb4vu2DPLwOJe5_gzOzv8o1931i6fku0eSDSVZtN0lWnKBJdH6A/exec";
 
         const schemas = {
             contingency_removal: {
@@ -697,21 +695,10 @@
                 fields: [
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
                     { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
-                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
-                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
+                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1' },
+                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1' },
                     { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
                     { id: 'actualOnline', label: 'Actual Online Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line restored at 1637H.' }
-                ]
-            },
-            contingency_inclusion: {
-                title: 'Contingency List Inclusion Notice',
-                fields: [
-                    { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
-                    { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
-                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
-                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
-                    { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
-                    { id: 'actualOutage', label: 'Actual Outage Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line tripped at 1637H.' }
                 ]
             },
             hvdc_limit: {
@@ -1007,15 +994,6 @@
                     if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
                     if (getVal('actualOnline')) output += `▪ Actual Online: ${getVal('actualOnline')}\n`;
 
-                } else if (type === 'contingency_inclusion') {
-                    output = `${schema.title}\n\n`;
-                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
-                    if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
-                    if (getVal('contingencyEquipment')) output += `▪ Contingency Equipment: ${getVal('contingencyEquipment')}\n`;
-                    if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
-                    if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
-                    if (getVal('actualOutage')) output += `▪ Actual Outage: ${getVal('actualOutage')}\n`;
-
                 } else if (type === 'hvdc_limit') {
                     output = `${schema.title}\n\n`;
                     if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
@@ -1116,24 +1094,17 @@
             localStorage.setItem('rto_report_history', JSON.stringify(logs));
             updateHistoryBadge();
 
-            syncToExcelDatabase(newLog);
+            syncToGoogleSheet(newLog);
         }
 
-        function syncToExcelDatabase(logData) {
-            // Only attempt to fetch if the user has provided a real URL
-            if(EXCEL_DATABASE_URL === "PASTE_YOUR_POWER_AUTOMATE_URL_HERE") {
-                console.warn("Power Automate URL not set. Data saved locally but not to Excel.");
-                return;
-            }
-            
-            fetch(EXCEL_DATABASE_URL, {
+        function syncToGoogleSheet(logData) {
+            fetch(GOOGLE_SCRIPT_WEB_APP_URL, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logData)
-            }).then(response => {
-                console.log('Successfully synced to Microsoft Excel!');
             }).catch(err => {
-                console.error('Excel Sync Failure:', err);
+                console.error('Google Sheets Sync Failure:', err);
             });
         }
 
@@ -1225,7 +1196,7 @@
             }
         }
 
-        function exportToCSV() {
+        function exportToGoogleSheetsCSV() {
             const logs = getHistoryLog();
             if (logs.length === 0) {
                 alert('No report history available to export.');
@@ -1314,7 +1285,7 @@
                 saveReportToHistory();
                 showConfirmModal(
                     "Report Text Copied!",
-                    "The formatted notice has been saved to clipboard and synced to Microsoft Excel."
+                    "The formatted operational notice is copied to your clipboard and synced to Google Sheets."
                 );
             }).catch(() => {
                 showToast('Failed to copy. Please copy manually.');
