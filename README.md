@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RTO Grid Operations Notice Generator & Repository</title>
+    <title>RTO Report Generator Tool</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -22,7 +23,7 @@
             --chat-bubble: #ffffff;
             --chat-text: #111b21;
             --input-bg: #f8f9fa;
-            --modal-bg: rgba(0, 0, 0, 0.5);
+            --modal-bg: rgba(0, 0, 0, 0.6);
         }
 
         [data-theme="dark"] {
@@ -42,7 +43,7 @@
             --chat-bubble: #1e293b;
             --chat-text: #f1f5f9;
             --input-bg: #0f172a;
-            --modal-bg: rgba(0, 0, 0, 0.75);
+            --modal-bg: rgba(0, 0, 0, 0.8);
         }
 
         * {
@@ -72,9 +73,10 @@
         }
 
         .header-title h1 {
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 800;
             color: var(--text-main);
+            letter-spacing: -0.3px;
         }
 
         .header-title p {
@@ -235,11 +237,18 @@
             font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
         .btn:active {
             transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
         .btn-viber {
@@ -247,7 +256,7 @@
             color: #ffffff;
         }
 
-        .btn-viber:hover {
+        .btn-viber:hover:not(:disabled) {
             background-color: var(--viber-hover);
         }
 
@@ -444,13 +453,88 @@
             border-radius: 10px;
             font-weight: bold;
         }
+
+        /* CONFIRMATION POPUP MODAL */
+        .confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .confirm-overlay.active {
+            display: flex;
+        }
+
+        .confirm-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .check-circle {
+            width: 60px;
+            height: 60px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px auto;
+        }
+
+        .confirm-card h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .confirm-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .confirm-card .btn-ok {
+            background: var(--primary);
+            color: #ffffff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="header-title">
-            <h1>RTO Notice Generator</h1>
+            <h1>RTO Report Generator Tool</h1>
             <p>Operations Notice Tool & Repository</p>
         </div>
         <div class="header-actions">
@@ -504,13 +588,13 @@
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-secondary" onclick="copyTextOnly()">
+            <button class="btn btn-secondary" id="btnCopyOnly" onclick="copyTextOnly()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                Copy Report Text
+                <span id="btnCopyOnlyText">Copy Report Text</span>
             </button>
-            <button class="btn btn-viber" onclick="copyAndRedirectViber()">
+            <button class="btn btn-viber" id="btnCopyViber" onclick="copyAndRedirectViber()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.37 16.03c-.52-.35-2.92-1.44-3.37-1.61-.45-.16-.78-.24-1.11.25-.33.49-1.28 1.61-1.57 1.94-.29.33-.58.37-1.1.11-.52-.26-2.19-.81-4.18-2.58-1.55-1.38-2.6-3.09-2.9-3.61-.3-.52-.03-.8.23-1.06.23-.23.52-.61.78-.91.26-.3.35-.52.52-.87.17-.35.09-.65-.04-.91-.13-.26-1.11-2.68-1.52-3.67-.4-.96-.82-.83-1.12-.85-.29-.02-.63-.02-.97-.02-.35 0-.91.13-1.38.65-.47.52-1.8 1.76-1.8 4.29 0 2.53 1.84 4.97 2.1 5.32.26.35 3.62 5.53 8.78 7.75 1.23.53 2.19.85 2.94 1.09 1.23.39 2.35.33 3.23.2 1-.15 3.07-1.25 3.5-2.46.43-1.21.43-2.25.3-2.47-.12-.22-.43-.35-.95-.61z"/></svg>
-                Copy & Open Viber
+                <span id="btnCopyViberText">Copy & Open Viber</span>
             </button>
         </div>
     </div>
@@ -553,6 +637,18 @@
                     🗑️ Clear
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Animated Confirmation Modal -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-card">
+            <div class="check-circle">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 id="confirmTitle">Report Text Copied!</h3>
+            <p id="confirmSubtitle">The formatted notice has been saved to clipboard and synced to Google Sheets.</p>
+            <button class="btn-ok" onclick="closeConfirmModal()">OK</button>
         </div>
     </div>
 
@@ -656,6 +752,7 @@
 
         let currentNoticeText = '';
         let manualBullets = [{ text: '', indent: false }];
+        let isProcessing = false;
 
         function initTheme() {
             const savedTheme = localStorage.getItem('rto_theme') || 'light';
@@ -930,8 +1027,6 @@
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(logData)
-            }).then(() => {
-                console.log('Successfully synced to Google Sheets!');
             }).catch(err => {
                 console.error('Google Sheets Sync Failure:', err);
             });
@@ -948,6 +1043,16 @@
 
         function closeHistoryModal() {
             document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function showConfirmModal(title, subtitle) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmSubtitle').innerText = subtitle;
+            document.getElementById('confirmOverlay').classList.add('active');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmOverlay').classList.remove('active');
         }
 
         function renderHistoryList() {
@@ -1081,26 +1186,53 @@
             return true;
         }
 
+        function disableButtons() {
+            isProcessing = true;
+            document.getElementById('btnCopyOnly').disabled = true;
+            document.getElementById('btnCopyViber').disabled = true;
+        }
+
+        function enableButtons() {
+            setTimeout(() => {
+                isProcessing = false;
+                document.getElementById('btnCopyOnly').disabled = false;
+                document.getElementById('btnCopyViber').disabled = false;
+            }, 1500); // 1.5 second rate-limit / debounce cooldown
+        }
+
         function copyTextOnly() {
+            if (isProcessing) return;
             if (!validateForm()) return;
+
+            disableButtons();
             copyTextToClipboard(currentNoticeText).then(() => {
                 saveReportToHistory();
-                showToast('Report copied & saved to Google Sheets!');
+                showConfirmModal(
+                    "Report Text Copied!",
+                    "The formatted operational notice is copied to your clipboard and synced to Google Sheets."
+                );
             }).catch(() => {
                 showToast('Failed to copy. Please copy manually.');
+            }).finally(() => {
+                enableButtons();
             });
         }
 
         function copyAndRedirectViber() {
+            if (isProcessing) return;
             if (!validateForm()) return;
+
+            disableButtons();
             copyTextToClipboard(currentNoticeText).then(() => {
                 saveReportToHistory();
                 showToast('Copied & Logged! Opening Viber...');
                 setTimeout(() => {
                     window.location.href = "viber://";
-                }, 600);
+                }, 500);
             }).catch(() => {
                 showToast('Failed to copy text automatically.');
+            }).finally(() => {
+                enableButtons();
             });
         }
 
