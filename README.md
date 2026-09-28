@@ -580,6 +580,7 @@
             <label for="noticeType">Select Report / Notice Type</label>
             <select id="noticeType" onchange="renderFormFields()">
                 <option value="contingency_removal">Contingency List Removal Notice</option>
+                <option value="contingency_inclusion">Contingency List Inclusion Notice</option>
                 <option value="hvdc_limit">HVDC Limit Change Update</option>
                 <option value="market_intervention">Market Intervention Notice</option>
                 <option value="lifting_market_intervention">Lifting of Market Intervention Notice</option>
@@ -638,6 +639,7 @@
                     <select id="historyFilterType" onchange="renderHistoryList()">
                         <option value="ALL">All Notice Types</option>
                         <option value="contingency_removal">Contingency Removal</option>
+                        <option value="contingency_inclusion">Contingency Inclusion</option>
                         <option value="hvdc_limit">HVDC Limit</option>
                         <option value="market_intervention">Market Intervention</option>
                         <option value="lifting_market_intervention">Lifting Market Intervention</option>
@@ -694,10 +696,21 @@
                 fields: [
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
                     { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
-                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1' },
-                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1' },
+                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
+                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
                     { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
                     { id: 'actualOnline', label: 'Actual Online Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line restored at 1637H.' }
+                ]
+            },
+            contingency_inclusion: {
+                title: 'Contingency List Inclusion Notice',
+                fields: [
+                    { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
+                    { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
+                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
+                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
+                    { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
+                    { id: 'actualOutage', label: 'Actual Outage Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line tripped at 1637H.' }
                 ]
             },
             hvdc_limit: {
@@ -992,6 +1005,15 @@
                     if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
                     if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
                     if (getVal('actualOnline')) output += `▪ Actual Online: ${getVal('actualOnline')}\n`;
+
+                } else if (type === 'contingency_inclusion') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
+                    if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
+                    if (getVal('contingencyEquipment')) output += `▪ Contingency Equipment: ${getVal('contingencyEquipment')}\n`;
+                    if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
+                    if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
+                    if (getVal('actualOutage')) output += `▪ Actual Outage: ${getVal('actualOutage')}\n`;
 
                 } else if (type === 'hvdc_limit') {
                     output = `${schema.title}\n\n`;
