@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -552,6 +551,40 @@
             font-weight: 600;
             letter-spacing: 0.5px;
         }
+
+        /* Tooltip Styles */
+        .group-e-hover {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            border-bottom: 1px dotted var(--text-muted);
+        }
+
+        .group-e-hover .tooltiptext {
+            visibility: hidden;
+            width: max-content;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            pointer-events: none;
+        }
+
+        .group-e-hover:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -581,6 +614,7 @@
             <label for="noticeType">Select Report / Notice Type</label>
             <select id="noticeType" onchange="renderFormFields()">
                 <option value="contingency_removal">Contingency List Removal Notice</option>
+                <option value="contingency_inclusion">Contingency List Inclusion Notice</option>
                 <option value="hvdc_limit">HVDC Limit Change Update</option>
                 <option value="market_intervention">Market Intervention Notice</option>
                 <option value="lifting_market_intervention">Lifting of Market Intervention Notice</option>
@@ -623,6 +657,10 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.37 16.03c-.52-.35-2.92-1.44-3.37-1.61-.45-.16-.78-.24-1.11.25-.33.49-1.28 1.61-1.57 1.94-.29.33-.58.37-1.1.11-.52-.26-2.19-.81-4.18-2.58-1.55-1.38-2.6-3.09-2.9-3.61-.3-.52-.03-.8.23-1.06.23-.23.52-.61.78-.91.26-.3.35-.52.52-.87.17-.35.09-.65-.04-.91-.13-.26-1.11-2.68-1.52-3.67-.4-.96-.82-.83-1.12-.85-.29-.02-.63-.02-.97-.02-.35 0-.91.13-1.38.65-.47.52-1.8 1.76-1.8 4.29 0 2.53 1.84 4.97 2.1 5.32.26.35 3.62 5.53 8.78 7.75 1.23.53 2.19.85 2.94 1.09 1.23.39 2.35.33 3.23.2 1-.15 3.07-1.25 3.5-2.46.43-1.21.43-2.25.3-2.47-.12-.22-.43-.35-.95-.61z"/></svg>
                 <span id="btnCopyViberText">Copy & Open Viber</span>
             </button>
+            <button class="btn btn-secondary" onclick="clearFormInputs()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                <span>Clear Inputs</span>
+            </button>
         </div>
     </div>
 
@@ -639,6 +677,7 @@
                     <select id="historyFilterType" onchange="renderHistoryList()">
                         <option value="ALL">All Notice Types</option>
                         <option value="contingency_removal">Contingency Removal</option>
+                        <option value="contingency_inclusion">Contingency Inclusion</option>
                         <option value="hvdc_limit">HVDC Limit</option>
                         <option value="market_intervention">Market Intervention</option>
                         <option value="lifting_market_intervention">Lifting Market Intervention</option>
@@ -682,7 +721,11 @@
     <div class="toast" id="toast">Copied to clipboard!</div>
     
     <div class="footer-credit">
-        Developed by Group E
+        Developed by 
+        <span class="group-e-hover">
+            Group E
+            <span class="tooltiptext">MNACCAD AYBLIM GJASALLE AATVILLAS</span>
+        </span>
     </div>
 
     <script>
@@ -695,10 +738,21 @@
                 fields: [
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
                     { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
-                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1' },
-                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1' },
+                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
+                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
                     { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
                     { id: 'actualOnline', label: 'Actual Online Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line restored at 1637H.' }
+                ]
+            },
+            contingency_inclusion: {
+                title: 'Contingency List Inclusion Notice',
+                fields: [
+                    { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
+                    { id: 'effective', label: 'Effective Time', placeholder: 'e.g. 1655H RTD' },
+                    { id: 'contingencyEquipment', label: 'Contingency Equipment', placeholder: 'e.g. 1SJO_1MRL1', list: 'equipmentList' },
+                    { id: 'outageRelated', label: 'Outage Related', placeholder: 'e.g. 3TAY_3TWP1', list: 'equipmentList' },
+                    { id: 'outageDate', label: 'Outage Date & Time', placeholder: 'e.g. 09/27/26 0300H - 1700H' },
+                    { id: 'actualOutage', label: 'Actual Outage Details', type: 'textarea', placeholder: 'e.g. Tayabas - Tanay Wind Power 500kV Line tripped at 1637H.' }
                 ]
             },
             hvdc_limit: {
@@ -994,6 +1048,15 @@
                     if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
                     if (getVal('actualOnline')) output += `▪ Actual Online: ${getVal('actualOnline')}\n`;
 
+                } else if (type === 'contingency_inclusion') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
+                    if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
+                    if (getVal('contingencyEquipment')) output += `▪ Contingency Equipment: ${getVal('contingencyEquipment')}\n`;
+                    if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
+                    if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
+                    if (getVal('actualOutage')) output += `▪ Actual Outage: ${getVal('actualOutage')}\n`;
+
                 } else if (type === 'hvdc_limit') {
                     output = `${schema.title}\n\n`;
                     if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
@@ -1060,6 +1123,19 @@
 
             currentNoticeText = output.trim();
             document.getElementById('previewText').innerText = currentNoticeText || 'Fill in form fields above to view preview...';
+        }
+
+        // New function to clear dynamic form inputs
+        function clearFormInputs() {
+            if (confirm('Are you sure you want to clear the current form inputs?')) {
+                // Reset manual bullets state
+                manualBullets = [{ text: '', indent: false }];
+                
+                // Re-rendering the form inherently empties all inputs
+                renderFormFields(); 
+                
+                showToast('Form cleared successfully.');
+            }
         }
 
         function saveReporterInfo() {
