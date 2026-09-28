@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RTO Grid Operations Notice Generator</title>
+    <title>RTO Grid Operations Notice Generator & Repository</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -15,12 +15,14 @@
             --primary-hover: #1d4ed8;
             --viber-purple: #7360f2;
             --viber-hover: #5d48db;
+            --accent-green: #10b981;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --radius: 12px;
             --chat-bg: #e5ddd5;
             --chat-bubble: #ffffff;
             --chat-text: #111b21;
             --input-bg: #f8f9fa;
+            --modal-bg: rgba(0, 0, 0, 0.5);
         }
 
         [data-theme="dark"] {
@@ -34,11 +36,13 @@
             --primary-hover: #2563eb;
             --viber-purple: #7360f2;
             --viber-hover: #5d48db;
+            --accent-green: #10b981;
             --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             --chat-bg: #0f172a;
             --chat-bubble: #1e293b;
             --chat-text: #f1f5f9;
             --input-bg: #0f172a;
+            --modal-bg: rgba(0, 0, 0, 0.75);
         }
 
         * {
@@ -53,7 +57,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             padding: 12px;
-            padding-bottom: 40px;
+            padding-bottom: 50px;
             max-width: 520px;
             margin: 0 auto;
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -68,18 +72,23 @@
         }
 
         .header-title h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--text-main);
         }
 
         .header-title p {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             margin-top: 2px;
         }
 
-        .theme-toggle-btn {
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -90,12 +99,12 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             box-shadow: var(--shadow);
             transition: all 0.2s ease;
         }
 
-        .theme-toggle-btn:active {
+        .icon-btn:active {
             transform: scale(0.95);
         }
 
@@ -164,6 +173,49 @@
             min-height: 70px;
         }
 
+        .bullet-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .bullet-row.indent-1 {
+            padding-left: 20px;
+        }
+
+        .bullet-row input {
+            flex: 1;
+        }
+
+        .bullet-row-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .manual-tools {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .btn-group {
             display: flex;
             flex-direction: column;
@@ -205,8 +257,9 @@
             border: 1px solid var(--border-color);
         }
 
-        .btn-secondary:hover {
-            background-color: var(--border-color);
+        .btn-excel {
+            background-color: var(--accent-green);
+            color: #ffffff;
         }
 
         .preview-container {
@@ -246,7 +299,7 @@
             font-weight: 600;
             box-shadow: 0 4px 16px rgba(0,0,0,0.3);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
+            z-index: 2000;
             pointer-events: none;
         }
 
@@ -258,6 +311,139 @@
             border-color: #ef4444 !important;
             background-color: rgba(239, 68, 68, 0.1) !important;
         }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--modal-bg);
+            backdrop-filter: blur(4px);
+            z-index: 1500;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            border-radius: 20px 20px 0 0;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.3s ease-out;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .history-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .history-list {
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+        }
+
+        .history-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .history-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .history-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .history-body {
+            font-size: 0.8rem;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 8px;
+            line-height: 1.35;
+        }
+
+        .history-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .badge-count {
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -265,15 +451,29 @@
     <div class="header">
         <div class="header-title">
             <h1>RTO Notice Generator</h1>
-            <p>Operational Notice Formatting Tool</p>
+            <p>Operations Notice Tool & Log</p>
         </div>
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
-            <span id="themeIcon">🌙</span>
-            <span id="themeText">Dark</span>
-        </button>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="openHistoryModal()">
+                <span>📜 Log</span>
+                <span class="badge-count" id="historyBadge">0</span>
+            </button>
+            <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Notice Selector Card -->
+    <!-- Google Sheet Configuration Card -->
+    <div class="card">
+        <div class="form-group">
+            <label for="googleScriptUrl">Google Apps Script Web App URL</label>
+            <input type="text" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveGoogleScriptUrl()">
+            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Target Sheet ID: <code>1-LPBXjFf6pxRu97JRC_prv1Hf4o_FAns2D89IB6aGTs</code></p>
+        </div>
+    </div>
+
+    <!-- Notice Selector -->
     <div class="card">
         <div class="form-group">
             <label for="noticeType">Select Report / Notice Type</label>
@@ -285,10 +485,12 @@
                 <option value="contingency_congestion">Contingency Congestion Notice</option>
                 <option value="base_case_congestion">Base Case Congestion Notice</option>
                 <option value="load_curtailment">Regional Load Curtailment Notice</option>
+                <option value="manual_notice">Manual Input Notice / Freeform Advisory</option>
             </select>
         </div>
     </div>
 
+    <!-- Dynamic Form Container -->
     <div class="card" id="formFields"></div>
 
     <!-- Dispatcher Signature Card -->
@@ -303,6 +505,7 @@
         </div>
     </div>
 
+    <!-- Live Preview & Dispatch Buttons -->
     <div class="card">
         <label>Live Operational Preview</label>
         <div class="preview-container">
@@ -318,6 +521,47 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.37 16.03c-.52-.35-2.92-1.44-3.37-1.61-.45-.16-.78-.24-1.11.25-.33.49-1.28 1.61-1.57 1.94-.29.33-.58.37-1.1.11-.52-.26-2.19-.81-4.18-2.58-1.55-1.38-2.6-3.09-2.9-3.61-.3-.52-.03-.8.23-1.06.23-.23.52-.61.78-.91.26-.3.35-.52.52-.87.17-.35.09-.65-.04-.91-.13-.26-1.11-2.68-1.52-3.67-.4-.96-.82-.83-1.12-.85-.29-.02-.63-.02-.97-.02-.35 0-.91.13-1.38.65-.47.52-1.8 1.76-1.8 4.29 0 2.53 1.84 4.97 2.1 5.32.26.35 3.62 5.53 8.78 7.75 1.23.53 2.19.85 2.94 1.09 1.23.39 2.35.33 3.23.2 1-.15 3.07-1.25 3.5-2.46.43-1.21.43-2.25.3-2.47-.12-.22-.43-.35-.95-.61z"/></svg>
                 Copy & Open Viber
             </button>
+        </div>
+    </div>
+
+    <!-- History Log Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Operational Report Repository</h2>
+                <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div class="history-controls">
+                <input type="text" id="historySearch" placeholder="Search keyword..." oninput="renderHistoryList()">
+                <div class="history-filters">
+                    <select id="historyFilterType" onchange="renderHistoryList()">
+                        <option value="ALL">All Notice Types</option>
+                        <option value="contingency_removal">Contingency Removal</option>
+                        <option value="hvdc_limit">HVDC Limit</option>
+                        <option value="market_intervention">Market Intervention</option>
+                        <option value="lifting_market_intervention">Lifting Market Intervention</option>
+                        <option value="contingency_congestion">Contingency Congestion</option>
+                        <option value="base_case_congestion">Base Case Congestion</option>
+                        <option value="load_curtailment">Load Curtailment</option>
+                        <option value="manual_notice">Manual Notice</option>
+                    </select>
+                    <select id="historySort" onchange="renderHistoryList()">
+                        <option value="NEWEST">Newest First</option>
+                        <option value="OLDEST">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="history-list" id="historyListContainer"></div>
+
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <button class="btn btn-excel" onclick="exportToGoogleSheetsCSV()">
+                    📊 Export CSV
+                </button>
+                <button class="btn btn-secondary" onclick="clearAllHistory()" style="width: auto; padding: 0 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
+                    🗑️ Clear
+                </button>
+            </div>
         </div>
     </div>
 
@@ -417,6 +661,7 @@
         };
 
         let currentNoticeText = '';
+        let manualBullets = [{ text: '', indent: false }];
 
         function initTheme() {
             const savedTheme = localStorage.getItem('rto_theme') || 'light';
@@ -433,58 +678,138 @@
         }
 
         function updateThemeUI(theme) {
-            const icon = document.getElementById('themeIcon');
-            const text = document.getElementById('themeText');
-            if (theme === 'dark') {
-                icon.innerText = '☀️';
-                text.innerText = 'Light';
-            } else {
-                icon.innerText = '🌙';
-                text.innerText = 'Dark';
-            }
+            document.getElementById('themeIcon').innerText = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function saveGoogleScriptUrl() {
+            localStorage.setItem('rto_google_script_url', document.getElementById('googleScriptUrl').value.trim());
+        }
+
+        function loadGoogleScriptUrl() {
+            const savedUrl = localStorage.getItem('rto_google_script_url');
+            if (savedUrl) document.getElementById('googleScriptUrl').value = savedUrl;
         }
 
         function renderFormFields() {
             const type = document.getElementById('noticeType').value;
-            const schema = schemas[type];
             const container = document.getElementById('formFields');
             container.innerHTML = '';
 
-            schema.fields.forEach(field => {
-                const group = document.createElement('div');
-                group.className = 'form-group';
+            if (type === 'manual_notice') {
+                renderManualEditor(container);
+            } else {
+                const schema = schemas[type];
+                schema.fields.forEach(field => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
 
-                const label = document.createElement('label');
-                label.innerText = field.label;
-                group.appendChild(label);
+                    const label = document.createElement('label');
+                    label.innerText = field.label;
+                    group.appendChild(label);
 
-                if (field.type === 'textarea') {
-                    const textarea = document.createElement('textarea');
-                    textarea.id = field.id;
-                    textarea.placeholder = field.placeholder || '';
-                    textarea.value = '';
-                    textarea.rows = 2;
-                    textarea.oninput = updatePreview;
-                    group.appendChild(textarea);
-                } else {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = field.id;
-                    input.placeholder = field.placeholder || '';
-                    input.value = '';
-                    input.oninput = updatePreview;
-                    group.appendChild(input);
-                }
+                    if (field.type === 'textarea') {
+                        const textarea = document.createElement('textarea');
+                        textarea.id = field.id;
+                        textarea.placeholder = field.placeholder || '';
+                        textarea.rows = 2;
+                        textarea.oninput = updatePreview;
+                        group.appendChild(textarea);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = field.id;
+                        input.placeholder = field.placeholder || '';
+                        input.oninput = updatePreview;
+                        group.appendChild(input);
+                    }
 
-                container.appendChild(group);
-            });
+                    container.appendChild(group);
+                });
+            }
 
             updatePreview();
         }
 
+        function renderManualEditor(container) {
+            const titleGroup = document.createElement('div');
+            titleGroup.className = 'form-group';
+            const titleLabel = document.createElement('label');
+            titleLabel.innerText = 'Custom Notice Title';
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.id = 'manualTitle';
+            titleInput.placeholder = 'e.g. System Advisory / Grid Status Note';
+            titleInput.oninput = updatePreview;
+            titleGroup.appendChild(titleLabel);
+            titleGroup.appendChild(titleInput);
+            container.appendChild(titleGroup);
+
+            const bulletsLabel = document.createElement('label');
+            bulletsLabel.innerText = 'Bullet Items & Operational Points';
+            container.appendChild(bulletsLabel);
+
+            const bulletsContainer = document.createElement('div');
+            bulletsContainer.id = 'bulletsContainer';
+            container.appendChild(bulletsContainer);
+
+            const toolsDiv = document.createElement('div');
+            toolsDiv.className = 'manual-tools';
+            toolsDiv.innerHTML = `
+                <button class="btn-sm" onclick="addBullet(false)">+ Add Main Bullet</button>
+                <button class="btn-sm" onclick="addBullet(true)">↳ Add Sub-Bullet</button>
+            `;
+            container.appendChild(toolsDiv);
+
+            refreshBulletRows();
+        }
+
+        function refreshBulletRows() {
+            const container = document.getElementById('bulletsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            manualBullets.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = `bullet-row ${item.indent ? 'indent-1' : ''}`;
+                
+                const bulletIcon = document.createElement('span');
+                bulletIcon.style.fontSize = '0.8rem';
+                bulletIcon.innerText = item.indent ? '▫' : '▪';
+                row.appendChild(bulletIcon);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = item.indent ? 'Sub-detail...' : 'Main bullet note...';
+                input.value = item.text;
+                input.oninput = (e) => {
+                    manualBullets[idx].text = e.target.value;
+                    updatePreview();
+                };
+                row.appendChild(input);
+
+                if (manualBullets.length > 1) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'bullet-row-btn';
+                    delBtn.innerText = '✕';
+                    delBtn.onclick = () => {
+                        manualBullets.splice(idx, 1);
+                        refreshBulletRows();
+                        updatePreview();
+                    };
+                    row.appendChild(delBtn);
+                }
+
+                container.appendChild(row);
+            });
+        }
+
+        function addBullet(isSub) {
+            manualBullets.push({ text: '', indent: isSub });
+            refreshBulletRows();
+        }
+
         function updatePreview() {
             const type = document.getElementById('noticeType').value;
-            const schema = schemas[type];
             let output = '';
 
             const getVal = (id) => {
@@ -492,79 +817,87 @@
                 return el ? el.value.trim() : '';
             };
 
-            if (type === 'contingency_removal') {
-                output = `${schema.title}\n\n`;
-                if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
-                if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
-                if (getVal('contingencyEquipment')) output += `▪ Contingency Equipment: ${getVal('contingencyEquipment')}\n`;
-                if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
-                if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
-                if (getVal('actualOnline')) output += `▪ Actual Online: ${getVal('actualOnline')}\n`;
+            if (type === 'manual_notice') {
+                const title = getVal('manualTitle') || 'Grid Operations Notice';
+                output = `${title}\n\n`;
+                manualBullets.forEach(b => {
+                    if (b.text.trim()) {
+                        output += b.indent ? `   ▫ ${b.text.trim()}\n` : `▪ ${b.text.trim()}\n`;
+                    }
+                });
+            } else {
+                const schema = schemas[type];
+                if (type === 'contingency_removal') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
+                    if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
+                    if (getVal('contingencyEquipment')) output += `▪ Contingency Equipment: ${getVal('contingencyEquipment')}\n`;
+                    if (getVal('outageRelated')) output += `▪ Outage Related: ${getVal('outageRelated')}\n`;
+                    if (getVal('outageDate')) output += `▪ Outage Date: ${getVal('outageDate')}\n`;
+                    if (getVal('actualOnline')) output += `▪ Actual Online: ${getVal('actualOnline')}\n`;
 
-            } else if (type === 'hvdc_limit') {
-                output = `${schema.title}\n\n`;
-                if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
-                if (getVal('parameter')) output += `▪ Parameter: ${getVal('parameter')}\n`;
-                if (getVal('previousLimit')) output += `▪ Previous Limit: ${getVal('previousLimit')}\n`;
-                if (getVal('newLimit')) output += `▪ New Limit: ${getVal('newLimit')}\n`;
-                if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
-                if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
+                } else if (type === 'hvdc_limit') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
+                    if (getVal('parameter')) output += `▪ Parameter: ${getVal('parameter')}\n`;
+                    if (getVal('previousLimit')) output += `▪ Previous Limit: ${getVal('previousLimit')}\n`;
+                    if (getVal('newLimit')) output += `▪ New Limit: ${getVal('newLimit')}\n`;
+                    if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
+                    if (getVal('effective')) output += `▪ Effective: ${getVal('effective')}\n`;
 
-            } else if (type === 'market_intervention') {
-                output = `${schema.title}\n\n`;
-                if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
-                if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
-                if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
-                if (getVal('start')) output += `▪ Start: ${getVal('start')}\n`;
-                if (getVal('cause')) output += `▪ Cause: ${getVal('cause')}\n`;
-                if (getVal('marketImpact')) output += `▪ Market Impact: ${getVal('marketImpact')}\n`;
-                if (getVal('actionTaken')) output += `▪ Action Taken: ${getVal('actionTaken')}\n`;
-                output += `\nThank you.`;
+                } else if (type === 'market_intervention') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
+                    if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
+                    if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
+                    if (getVal('start')) output += `▪ Start: ${getVal('start')}\n`;
+                    if (getVal('cause')) output += `▪ Cause: ${getVal('cause')}\n`;
+                    if (getVal('marketImpact')) output += `▪ Market Impact: ${getVal('marketImpact')}\n`;
+                    if (getVal('actionTaken')) output += `▪ Action Taken: ${getVal('actionTaken')}\n`;
+                    output += `\nThank you.`;
 
-            } else if (type === 'lifting_market_intervention') {
-                output = `${schema.title}\n\n`;
-                if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
-                if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
-                if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
-                if (getVal('start')) output += `▪ Start: ${getVal('start')}\n`;
-                if (getVal('duration')) output += `▪ Duration: ${getVal('duration')}\n`;
-                if (getVal('cause')) output += `▪ Cause: ${getVal('cause')}\n`;
-                if (getVal('marketImpact')) output += `▪ Market Impact: ${getVal('marketImpact')}\n`;
-                if (getVal('actionTaken')) output += `▪ Action Taken: ${getVal('actionTaken')}\n`;
+                } else if (type === 'lifting_market_intervention') {
+                    output = `${schema.title}\n\n`;
+                    if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
+                    if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
+                    if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
+                    if (getVal('start')) output += `▪ Start: ${getVal('start')}\n`;
+                    if (getVal('duration')) output += `▪ Duration: ${getVal('duration')}\n`;
+                    if (getVal('cause')) output += `▪ Cause: ${getVal('cause')}\n`;
+                    if (getVal('marketImpact')) output += `▪ Market Impact: ${getVal('marketImpact')}\n`;
+                    if (getVal('actionTaken')) output += `▪ Action Taken: ${getVal('actionTaken')}\n`;
 
-            } else if (type === 'contingency_congestion' || type === 'base_case_congestion') {
-                const elemHeader = getVal('elementHeader');
-                output = elemHeader ? `${schema.title} - ${elemHeader}\n\n` : `${schema.title}\n\n`;
-                if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
-                if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
-                if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
-                if (getVal('element')) output += `▪ Element: ${getVal('element')}\n`;
-                if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
-                if (getVal('interval')) output += `▪ Interval: ${getVal('interval')}\n`;
-                if (getVal('finding')) output += `▪ Finding: ${getVal('finding')}\n`;
-                if (getVal('status')) output += `▪ Status: ${getVal('status')}\n`;
+                } else if (type === 'contingency_congestion' || type === 'base_case_congestion') {
+                    const elemHeader = getVal('elementHeader');
+                    output = elemHeader ? `${schema.title} - ${elemHeader}\n\n` : `${schema.title}\n\n`;
+                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
+                    if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
+                    if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
+                    if (getVal('element')) output += `▪ Element: ${getVal('element')}\n`;
+                    if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
+                    if (getVal('interval')) output += `▪ Interval: ${getVal('interval')}\n`;
+                    if (getVal('finding')) output += `▪ Finding: ${getVal('finding')}\n`;
+                    if (getVal('status')) output += `▪ Status: ${getVal('status')}\n`;
 
-            } else if (type === 'load_curtailment') {
-                const reg = getVal('region');
-                output = reg ? `${reg} Load Curtailment Notice\n\n` : `${schema.title}\n\n`;
-                if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
-                if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
-                if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
-                if (getVal('magnitude')) output += `▪ Magnitude: ${getVal('magnitude')}\n`;
-                if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
-                if (getVal('intervals')) output += `▪ Intervals affected: ${getVal('intervals')}\n`;
-                if (getVal('finding')) output += `▪ Finding: ${getVal('finding')}\n`;
-                if (getVal('impact')) output += `▪ Impact: ${getVal('impact')}\n`;
-                if (getVal('status')) output += `▪ Status: ${getVal('status')}\n`;
+                } else if (type === 'load_curtailment') {
+                    const reg = getVal('region');
+                    output = reg ? `${reg} Load Curtailment Notice\n\n` : `${schema.title}\n\n`;
+                    if (getVal('marketRun')) output += `▪ Market Run: ${getVal('marketRun')}\n`;
+                    if (getVal('region')) output += `▪ Region: ${getVal('region')}\n`;
+                    if (getVal('event')) output += `▪ Event: ${getVal('event')}\n`;
+                    if (getVal('magnitude')) output += `▪ Magnitude: ${getVal('magnitude')}\n`;
+                    if (getVal('date')) output += `▪ Date: ${getVal('date')}\n`;
+                    if (getVal('intervals')) output += `▪ Intervals affected: ${getVal('intervals')}\n`;
+                    if (getVal('finding')) output += `▪ Finding: ${getVal('finding')}\n`;
+                    if (getVal('impact')) output += `▪ Impact: ${getVal('impact')}\n`;
+                    if (getVal('status')) output += `▪ Status: ${getVal('status')}\n`;
+                }
             }
 
-            // Append Dispatcher Signature
             const name = document.getElementById('reporterName').value.trim();
             const role = document.getElementById('reporterRole').value.trim();
-
             if (name) {
-                const sig = role ? `\n\n▪ Reported by: ${name} (${role})` : `\n\n▪ Reported by: ${name}`;
-                output += sig;
+                output += role ? `\n\n▪ Reported by: ${name} (${role})` : `\n\n▪ Reported by: ${name}`;
             }
 
             currentNoticeText = output.trim();
@@ -572,28 +905,165 @@
         }
 
         function saveReporterInfo() {
-            const name = document.getElementById('reporterName').value;
-            const role = document.getElementById('reporterRole').value;
-            localStorage.setItem('rto_reporter_name', name);
-            localStorage.setItem('rto_reporter_role', role);
+            localStorage.setItem('rto_reporter_name', document.getElementById('reporterName').value);
+            localStorage.setItem('rto_reporter_role', document.getElementById('reporterRole').value);
         }
 
         function loadReporterInfo() {
-            const savedName = localStorage.getItem('rto_reporter_name');
-            const savedRole = localStorage.getItem('rto_reporter_role');
-            if (savedName) document.getElementById('reporterName').value = savedName;
-            if (savedRole) document.getElementById('reporterRole').value = savedRole;
+            const name = localStorage.getItem('rto_reporter_name');
+            const role = localStorage.getItem('rto_reporter_role');
+            if (name) document.getElementById('reporterName').value = name;
+            if (role) document.getElementById('reporterRole').value = role;
+        }
+
+        function getHistoryLog() {
+            return JSON.parse(localStorage.getItem('rto_report_history') || '[]');
+        }
+
+        function saveReportToHistory() {
+            const newLog = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString(),
+                isoDate: new Date().toISOString(),
+                type: document.getElementById('noticeType').value,
+                reporter: document.getElementById('reporterName').value.trim(),
+                role: document.getElementById('reporterRole').value.trim(),
+                content: currentNoticeText
+            };
+
+            const logs = getHistoryLog();
+            logs.unshift(newLog);
+            localStorage.setItem('rto_report_history', JSON.stringify(logs));
+            updateHistoryBadge();
+
+            syncToGoogleSheet(newLog);
+        }
+
+        function syncToGoogleSheet(logData) {
+            const scriptUrl = localStorage.getItem('rto_google_script_url');
+            if (!scriptUrl) return;
+
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logData)
+            }).then(() => {
+                console.log('Successfully posted to Google Sheets');
+            }).catch(err => {
+                console.error('Google Sheets Sync Failure:', err);
+            });
+        }
+
+        function updateHistoryBadge() {
+            document.getElementById('historyBadge').innerText = getHistoryLog().length;
+        }
+
+        function openHistoryModal() {
+            renderHistoryList();
+            document.getElementById('historyModal').classList.add('active');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyListContainer');
+            const search = document.getElementById('historySearch').value.toLowerCase();
+            const filterType = document.getElementById('historyFilterType').value;
+            const sortOrder = document.getElementById('historySort').value;
+
+            let logs = getHistoryLog();
+
+            logs = logs.filter(item => {
+                const matchesType = (filterType === 'ALL' || item.type === filterType);
+                const matchesSearch = item.content.toLowerCase().includes(search) || item.reporter.toLowerCase().includes(search);
+                return matchesType && matchesSearch;
+            });
+
+            logs.sort((a, b) => sortOrder === 'NEWEST' ? b.id - a.id : a.id - b.id);
+
+            container.innerHTML = '';
+            if (logs.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">No saved operational reports found.</p>`;
+                return;
+            }
+
+            logs.forEach(log => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.innerHTML = `
+                    <div class="history-card-header">
+                        <span class="history-type">${log.type.replace('_', ' ')}</span>
+                        <span class="history-date">${log.timestamp}</span>
+                    </div>
+                    <div class="history-body">${log.content}</div>
+                    <div class="history-actions">
+                        <button class="btn-sm" onclick="copyHistoryItem(${log.id})">📋 Copy</button>
+                        <button class="btn-sm" style="color: #ef4444;" onclick="deleteHistoryItem(${log.id})">🗑️ Delete</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyHistoryItem(id) {
+            const target = getHistoryLog().find(item => item.id === id);
+            if (target) {
+                copyTextToClipboard(target.content).then(() => {
+                    showToast('Past report copied to clipboard!');
+                });
+            }
+        }
+
+        function deleteHistoryItem(id) {
+            let logs = getHistoryLog();
+            logs = logs.filter(item => item.id !== id);
+            localStorage.setItem('rto_report_history', JSON.stringify(logs));
+            updateHistoryBadge();
+            renderHistoryList();
+        }
+
+        function clearAllHistory() {
+            if (confirm('Are you sure you want to clear all report log history?')) {
+                localStorage.removeItem('rto_report_history');
+                updateHistoryBadge();
+                renderHistoryList();
+            }
+        }
+
+        function exportToGoogleSheetsCSV() {
+            const logs = getHistoryLog();
+            if (logs.length === 0) {
+                alert('No report history available to export.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Timestamp,Notice Type,Reporter,Role,Content\n";
+            logs.forEach(row => {
+                const cleanContent = `"${row.content.replace(/"/g, '""')}"`;
+                const cleanReporter = `"${row.reporter.replace(/"/g, '""')}"`;
+                const cleanRole = `"${row.role.replace(/"/g, '""')}"`;
+                csvContent += `${row.id},${row.timestamp},${row.type},${cleanReporter},${cleanRole},${cleanContent}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `RTO_Grid_Report_Log_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function copyTextToClipboard(text) {
             return new Promise((resolve, reject) => {
-                // Primary modern method
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(text).then(resolve).catch(() => {
                         fallbackCopy(text) ? resolve() : reject();
                     });
                 } else {
-                    // Fallback method for mobile WebViews or unsecure contexts
                     fallbackCopy(text) ? resolve() : reject();
                 }
             });
@@ -603,7 +1073,6 @@
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed";
-            textArea.style.top = "0";
             textArea.style.left = "-999999px";
             document.body.appendChild(textArea);
             textArea.focus();
@@ -632,19 +1101,19 @@
 
         function copyTextOnly() {
             if (!validateForm()) return;
-
             copyTextToClipboard(currentNoticeText).then(() => {
-                showToast('Report copied to clipboard!');
+                saveReportToHistory();
+                showToast('Report copied & synced!');
             }).catch(() => {
-                showToast('Failed to copy. Please copy from preview window.');
+                showToast('Failed to copy. Please copy manually.');
             });
         }
 
         function copyAndRedirectViber() {
             if (!validateForm()) return;
-
             copyTextToClipboard(currentNoticeText).then(() => {
-                showToast('Copied! Opening Viber...');
+                saveReportToHistory();
+                showToast('Copied & Logged! Opening Viber...');
                 setTimeout(() => {
                     window.location.href = "viber://";
                 }, 600);
@@ -664,8 +1133,10 @@
 
         window.onload = () => {
             initTheme();
+            loadGoogleScriptUrl();
             loadReporterInfo();
             renderFormFields();
+            updateHistoryBadge();
         };
     </script>
 </body>
