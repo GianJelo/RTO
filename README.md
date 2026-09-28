@@ -541,6 +541,16 @@
             cursor: pointer;
             width: 100%;
         }
+
+        .footer-credit {
+            text-align: center;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -669,6 +679,10 @@
     </div>
 
     <div class="toast" id="toast">Copied to clipboard!</div>
+    
+    <div class="footer-credit">
+        Developed by Group E
+    </div>
 
     <script>
         // HARDCODED GOOGLE APPS SCRIPT WEB APP ENDPOINT
@@ -700,7 +714,7 @@
             market_intervention: {
                 title: 'Market Intervention Notice',
                 fields: [
-                    { id: 'region', label: 'Region', placeholder: 'e.g. Visayas' },
+                    { id: 'region', label: 'Region', type: 'select', options: ['', 'Luzon', 'Visayas', 'Mindanao'] },
                     { id: 'event', label: 'Event', placeholder: 'e.g. System Operator (SO) Initiated Market Intervention' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/23/2026' },
                     { id: 'start', label: 'Start Time', placeholder: 'e.g. 1515H-ongoing' },
@@ -712,7 +726,7 @@
             lifting_market_intervention: {
                 title: 'Lifting of Market Intervention Notice',
                 fields: [
-                    { id: 'region', label: 'Region', placeholder: 'e.g. Visayas' },
+                    { id: 'region', label: 'Region', type: 'select', options: ['', 'Luzon', 'Visayas', 'Mindanao'] },
                     { id: 'event', label: 'Event', placeholder: 'e.g. System Operator (SO) Initiated Market Intervention' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/23/2026' },
                     { id: 'start', label: 'Start Time', placeholder: 'e.g. 1515H-2155H' },
@@ -727,7 +741,7 @@
                 fields: [
                     { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 3DASMA_TR1', list: 'equipmentList' },
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
-                    { id: 'region', label: 'Region', placeholder: 'e.g. Luzon' },
+                    { id: 'region', label: 'Region', type: 'select', options: ['', 'Luzon', 'Visayas', 'Mindanao'] },
                     { id: 'event', label: 'Event', placeholder: 'e.g. Contingency Case Congestion' },
                     { id: 'element', label: 'Element', placeholder: 'e.g. 3DASMA_TR1', list: 'equipmentList' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/25/2026' },
@@ -741,7 +755,7 @@
                 fields: [
                     { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 14TACUR_TR4', list: 'equipmentList' },
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
-                    { id: 'region', label: 'Region', placeholder: 'e.g. Mindanao' },
+                    { id: 'region', label: 'Region', type: 'select', options: ['', 'Luzon', 'Visayas', 'Mindanao'] },
                     { id: 'event', label: 'Event', placeholder: 'e.g. Base Case Congestion' },
                     { id: 'element', label: 'Element', placeholder: 'e.g. 14TACUR_TR4', list: 'equipmentList' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/26/2026' },
@@ -754,7 +768,7 @@
                 title: 'Load Curtailment Notice',
                 fields: [
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
-                    { id: 'region', label: 'Region', placeholder: 'e.g. Visayas Grid' },
+                    { id: 'region', label: 'Region', type: 'select', options: ['', 'Luzon', 'Visayas', 'Mindanao'] },
                     { id: 'event', label: 'Event', placeholder: 'e.g. Intermittent Load Curtailment' },
                     { id: 'magnitude', label: 'Magnitude', placeholder: 'e.g. 10.04-70.38 MW' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/26/2026' },
