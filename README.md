@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -672,8 +673,8 @@
             hvdc_limit: {
                 title: 'HVDC Limit Change Update',
                 fields: [
-                    { id: 'event', label: 'Event', placeholder: 'e.g. Luz-Vis HVDC Limit Adjustment' },
-                    { id: 'parameter', label: 'Parameter', placeholder: 'e.g. HVDC Reverse Limit' },
+                    { id: 'event', label: 'Event', type: 'select', options: ['', 'Luz-Vis HVDC Limit Adjustment', 'Min-Vis HVDC Limit Adjustment'] },
+                    { id: 'parameter', label: 'Parameter', type: 'select', options: ['', 'HVDC Reverse Limit', 'HVDC Forward Limit'] },
                     { id: 'previousLimit', label: 'Previous Limit', placeholder: 'e.g. 50MW' },
                     { id: 'newLimit', label: 'New Limit', placeholder: 'e.g. 120MW' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/27/2026' },
@@ -795,6 +796,18 @@
                         textarea.rows = 2;
                         textarea.oninput = updatePreview;
                         group.appendChild(textarea);
+                    } else if (field.type === 'select') {
+                        const select = document.createElement('select');
+                        select.id = field.id;
+                        select.onchange = updatePreview;
+                        
+                        field.options.forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt;
+                            option.innerText = opt === '' ? '-- Select Option --' : opt;
+                            select.appendChild(option);
+                        });
+                        group.appendChild(select);
                     } else {
                         const input = document.createElement('input');
                         input.type = 'text';
@@ -1196,7 +1209,7 @@
                 isProcessing = false;
                 document.getElementById('btnCopyOnly').disabled = false;
                 document.getElementById('btnCopyViber').disabled = false;
-            }, 1500); // 1.5 second rate-limit / debounce cooldown
+            }, 1500);
         }
 
         function copyTextOnly() {
