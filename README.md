@@ -3,6 +3,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RTO Report Generator Tool</title>
+    <!-- SheetJS Library for reading Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -142,6 +144,7 @@
             color: #ef4444;
         }
 
+        /* Standardize input, select, and textarea styles */
         select, input, textarea {
             width: 100%;
             padding: 10px 12px;
@@ -152,6 +155,16 @@
             color: var(--text-main);
             outline: none;
             transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        /* Specific fix to ensure inputs with datalists look identical */
+        input[list] {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%3c65676b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
         }
 
         select:focus, input:focus, textarea:focus {
@@ -187,6 +200,7 @@
 
         .bullet-row input {
             flex: 1;
+            background-image: none !important; /* Remove dropdown arrow on bullet inputs */
         }
 
         .bullet-row-btn {
@@ -531,6 +545,9 @@
 </head>
 <body>
 
+    <!-- Hidden Datalist to hold Excel Equipment options -->
+    <datalist id="equipmentList"></datalist>
+
     <div class="header">
         <div class="header-title">
             <h1>RTO Report Generator Tool</h1>
@@ -708,11 +725,11 @@
             contingency_congestion: {
                 title: 'Contingency Congestion Notice',
                 fields: [
-                    { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 3DASMA_TR1' },
+                    { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 3DASMA_TR1', list: 'equipmentList' },
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
                     { id: 'region', label: 'Region', placeholder: 'e.g. Luzon' },
                     { id: 'event', label: 'Event', placeholder: 'e.g. Contingency Case Congestion' },
-                    { id: 'element', label: 'Element', placeholder: 'e.g. 3DASMA_TR1' },
+                    { id: 'element', label: 'Element', placeholder: 'e.g. 3DASMA_TR1', list: 'equipmentList' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/25/2026' },
                     { id: 'interval', label: 'Interval', placeholder: 'e.g. 1140H and 1225H' },
                     { id: 'finding', label: 'Finding', type: 'textarea', placeholder: 'e.g. Reaching capacity to binding limit of 598MW...' },
@@ -722,11 +739,11 @@
             base_case_congestion: {
                 title: 'Base Case Congestion Notice',
                 fields: [
-                    { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 14TACUR_TR4' },
+                    { id: 'elementHeader', label: 'Header Element Identifier', placeholder: 'e.g. 14TACUR_TR4', list: 'equipmentList' },
                     { id: 'marketRun', label: 'Market Run', placeholder: 'e.g. RTD' },
                     { id: 'region', label: 'Region', placeholder: 'e.g. Mindanao' },
                     { id: 'event', label: 'Event', placeholder: 'e.g. Base Case Congestion' },
-                    { id: 'element', label: 'Element', placeholder: 'e.g. 14TACUR_TR4' },
+                    { id: 'element', label: 'Element', placeholder: 'e.g. 14TACUR_TR4', list: 'equipmentList' },
                     { id: 'date', label: 'Date', placeholder: 'e.g. 09/26/2026' },
                     { id: 'interval', label: 'Interval', placeholder: 'e.g. 0805H - 0900H' },
                     { id: 'finding', label: 'Finding', type: 'textarea', placeholder: 'e.g. Sudden increase of schedule of 14DSA_T2L1...' },
@@ -771,6 +788,33 @@
             document.getElementById('themeIcon').innerText = theme === 'dark' ? '☀️' : '🌙';
         }
 
+        // Fetch Excel data and populate datalist
+        async function loadEquipmentFromExcel() {
+            try {
+                const response = await fetch('All lines with rating.xlsx');
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    const datalist = document.getElementById('equipmentList');
+                    datalist.innerHTML = ''; // Clear defaults
+                    
+                    rows.forEach(row => {
+                        const val = row.Line || row.line || row.LINE;
+                        if (val) {
+                            const option = document.createElement('option');
+                            option.value = val;
+                            datalist.appendChild(option);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log("Excel file not found or couldn't be read. Check file name and location.");
+            }
+        }
+
         function renderFormFields() {
             const type = document.getElementById('noticeType').value;
             const container = document.getElementById('formFields');
@@ -812,6 +856,12 @@
                         input.type = 'text';
                         input.id = field.id;
                         input.placeholder = field.placeholder || '';
+                        
+                        // Attach the datalist ID if specified in schema
+                        if (field.list) {
+                            input.setAttribute('list', field.list);
+                        }
+                        
                         input.oninput = updatePreview;
                         group.appendChild(input);
                     }
@@ -1261,6 +1311,8 @@
             loadReporterInfo();
             renderFormFields();
             updateHistoryBadge();
+            // Load equipment options from Excel immediately upon opening
+            loadEquipmentFromExcel();
         };
     </script>
 </body>
